@@ -17,4 +17,5 @@ def get_user(user_id):
     return jsonify(user_data), 200
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    from waitress import serve
+    serve(app, host="0.0.0.0", port=8080)
