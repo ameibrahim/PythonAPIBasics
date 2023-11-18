@@ -2,8 +2,10 @@ import numpy as np
 import joblib
 from sklearn.preprocessing import StandardScaler
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 application = Flask(__name__)
+CORS(application)
 
 # Load the pre-trained SVR models
 loaded_fuel_model = joblib.load(open("svr_model.sav", "rb"))
@@ -32,33 +34,16 @@ def CO2_prediction(fuel_prediction_result):
     return round(prediction[0], 2)
 
 def input_converter(inp):
-    vcl = ['Two-seater','Minicompact','Compact','Subcompact','Mid-size','Full-size','SUV: Small','SUV: Standard','Minivan','Station wagon: Small','Station wagon: Mid-size','Pickup truck: Small','Special purpose vehicle','Pickup truck: Standard']
-    trans = ['AV','AM','M','AS','A']
-    fuel = ["D","E","X","Z"]
-    lst = []
+    # vcl = ['Two-seater','Minicompact','Compact','Subcompact','Mid-size','Full-size','SUV: Small','SUV: Standard','Minivan','Station wagon: Small','Station wagon: Mid-size','Pickup truck: Small','Special purpose vehicle','Pickup truck: Standard']
+    # trans = ['AV','AM','M','AS','A']
+    # fuel = ["D","E","X","Z"]
+    # lst = []
 
-    for i in range(6):
-        if isinstance(inp[i], str):
-            if inp[i] in vcl:
-                lst.append(vcl.index(inp[i]))
-            elif inp[i] in trans:
-                lst.append(trans.index(inp[i]))
-            elif inp[i] in fuel:
-                if fuel.index(inp[i]) == 0:
-                    lst.extend([1, 0, 0, 0])
-                    break
-                elif fuel.index(inp[i]) == 1:
-                    lst.extend([0, 1, 0, 0])
-                    break
-                elif fuel.index(inp[i]) == 2:
-                    lst.extend([0, 0, 1, 0])
-                    break
-                elif fuel.index(inp[i]) == 3:
-                    lst.extend([0, 0, 0, 1])
-        else:
-            lst.append(inp[i])
+    lst = inp
 
     arr = np.asarray(lst)
+    print(lst)
+
     arr = arr.reshape(1, -1)
 
     arr_scaled = loaded_scaler_fuel.transform(arr)
@@ -69,16 +54,27 @@ def input_converter(inp):
     return round(fuel_prediction_result[0], 2), CO2_prediction_result
 
 # user_input = [vehicle_class, engine_size, cylinders, transmission, CO2_rating, fuel_type]
-user_input = ["Two Seater", 1.0, 5 , "AM", 6.0, "D"]
+# user_input = ["Two Seater", 1.0, 5 , "AM", 6.0, "D"]
 
-@application.route("/")
+@application.route("/", methods=['GET'])
 def index():
     return "hello"
 
 
-@application.route("/get-results/")
+@application.route("/get-results/", methods=['GET'])
 def get_results():
-    
+
+    vehicleClass = request.args.get("vehicleClass")
+    engineSize = request.args.get("engineSize")
+    cylinders = request.args.get("cylinders")
+    transmission = request.args.get("transmission")
+    CO2Rating = request.args.get("CO2Rating")
+    D = request.args.get("D")
+    E = request.args.get("E")
+    X = request.args.get("X")
+    Z = request.args.get("Z")
+
+    user_input = [ int(vehicleClass), int(engineSize), int(cylinders) , int(transmission), int(CO2Rating), int(D), int(E), int(X), int(Z)]
     fuel_result, CO2_result = input_converter(user_input)
 
     results = {
@@ -87,12 +83,9 @@ def get_results():
         "CO2_result": CO2_result,
     }
 
-    # extra = request.args.get("extra")
-
-    # if extra:
-    #     results["extra"] = extra
-    
-    return jsonify(results), 200
+    response = jsonify(results)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 if __name__ == "__main__":
    application.run()

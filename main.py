@@ -1,21 +1,27 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-@app.route("/get-user/<user_id>")
-def get_user(user_id):
-    
-    user_data = {
-        "user_id": user_id
+
+@app.route("/calculate/", methods=['GET'])
+def calculate():
+
+    result = {
+        "result": 0
     }
 
-    extra = request.args.get("extra")
+    a = request.args.get("a")
+    b = request.args.get("b")
 
-    if extra:
-      user_data["extra"] = extra
-     
-    return jsonify(user_data), 200
+    if a != None and b != None :
+      result["result"] = int(a) + int(b)
+    
+    response = jsonify(result)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+    
 
 if __name__ == "__main__":
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=80)
+    app.run()
