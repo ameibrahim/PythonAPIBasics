@@ -7,8 +7,8 @@ application = Flask(__name__)
 CORS(application)
 
 # Load the pre-trained SVR models
-loaded_fuel_model = joblib.load(open("svr_model.sav", "rb"))
-loaded_CO2_model = joblib.load(open("svr2_model.sav", "rb"))
+loaded_fuel_model = joblib.load(open("extra_trees_model.sav", "rb"))
+loaded_CO2_model = joblib.load(open("svr_model2.sav", "rb"))
 
 # Load the fitted StandardScaler
 loaded_scaler_fuel = joblib.load(open("scaled_data.sav", "rb"))
@@ -73,7 +73,7 @@ def get_results():
     X = request.args.get("X")
     Z = request.args.get("Z")
 
-    user_input = [ int(vehicleClass), int(engineSize), int(cylinders) , int(transmission), int(CO2Rating), int(D), int(E), int(X), int(Z)]
+    user_input = [ int(vehicleClass), float(engineSize), float(cylinders) , float(transmission), float(CO2Rating), int(D), int(E), int(X), int(Z)]
     fuel_result, CO2_result = input_converter(user_input)
 
     results = {
